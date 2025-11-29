@@ -5,25 +5,22 @@ import json
 
 app = Flask(__name__, template_folder='../templates')
 
-# Inisialisasi Client (Tanpa Login Password)
 cl = Client()
 
+# --- BAGIAN LOAD SESSION (Sama seperti sebelumnya) ---
 def load_session():
-    """Fungsi untuk memuat sesi dari Env Variable Vercel"""
     try:
-        # Mengambil data session yang kita simpan di pengaturan Vercel
         session_json = os.environ.get('IG_SESSION') 
         if session_json:
             cl.set_settings(json.loads(session_json))
             return True
         else:
-            print("❌ Tidak ada IG_SESSION di Environment Variables")
+            # Jika tes lokal tanpa env, abaikan saja dulu
             return False
     except Exception as e:
-        print(f"❌ Gagal load session: {e}")
+        print(f"Warning Session: {e}")
         return False
 
-# Load session saat aplikasi mulai
 load_session()
 
 @app.route('/')
@@ -39,8 +36,14 @@ def check_user():
         return jsonify({'error': 'Username kosong'}), 400
 
     try:
-        # Coba ambil info. Jika error (misal session expired), coba relogin (opsional/risky di Vercel)
+        # Login ulang jika perlu (opsional untuk lokal)
+        # cl.login(USERNAME, PASSWORD) 
+        
         info = cl.user_info_by_username(target_username)
+        
+        # --- PERBAIKAN DI SINI ---
+        # Kita convert URL gambar menjadi string biasa agar tidak error JSON
+        pic_url = info.profile_pic_url_hd or info.profile_pic_url
         
         result = {
             'status': 'success',
@@ -52,12 +55,10 @@ def check_user():
             'posts': info.media_count,
             'is_private': info.is_private,
             'is_verified': info.is_verified,
-            'profile_pic': info.profile_pic_url_hd or info.profile_pic_url
+            'profile_pic': str(pic_url)  # <--- DIBUNGKUS str()
         }
         return jsonify(result)
 
     except Exception as e:
+        print(f"Error Detail: {e}") # Print error di terminal biar kelihatan
         return jsonify({'status': 'error', 'message': str(e)}), 500
-
-# Handler untuk Vercel Serverless
-# Tidak perlu app.run() karena Vercel yang menjalankannya
