@@ -3,160 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Checker API</title>
+    <title>IG Super Checker</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #fafafa; text-align: center; padding: 20px; color: #262626; }
-        .container { max-width: 400px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border: 1px solid #dbdbdb; }
-        h2 { margin-bottom: 20px; color: #262626; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fafafa; color: #262626; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; }
         
-        input { 
-            width: 80%; padding: 12px; margin: 10px 0; 
-            border: 1px solid #dbdbdb; border-radius: 6px; 
-            background: #fafafa; outline: none;
-        }
-        input:focus { border: 1px solid #a8a8a8; }
-        
-        button { 
-            padding: 10px 24px; background: #0095f6; color: white; 
-            border: none; border-radius: 6px; cursor: pointer; font-weight: 600; 
-            transition: background 0.2s;
-        }
-        button:hover { background: #0077c2; }
-        button:disabled { background: #b2dffc; cursor: not-allowed; }
+        /* Search Box */
+        .search-box { padding: 20px; background: #fff; border-bottom: 1px solid #dbdbdb; text-align: center; }
+        input { width: 70%; padding: 10px; border: 1px solid #dbdbdb; border-radius: 6px; outline: none; }
+        button { padding: 10px 20px; background: #0095f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:disabled { background: #b2dffc; }
 
-        #result { margin-top: 30px; text-align: left; display: none; border-top: 1px solid #efefef; padding-top: 20px; }
-        .profile-header { text-align: center; margin-bottom: 20px; }
+        /* Profile Header */
+        .profile-header { padding: 20px; display: flex; align-items: center; border-bottom: 1px solid #efefef; }
+        .pp { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-right: 20px; border: 3px solid #eee; }
+        .info h3 { margin: 0; font-size: 18px; }
+        .info p { margin: 5px 0 0; color: #8e8e8e; font-size: 14px; }
+        .stats { display: flex; gap: 15px; margin-top: 10px; font-size: 14px; font-weight: 500; }
         
-        /* PENTING: Class untuk gambar profil */
-        .profile-img { 
-            width: 120px; height: 120px; 
-            border-radius: 50%; object-fit: cover; 
-            border: 4px solid #fff; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin-bottom: 10px;
-        }
+        /* Tabs Navigation */
+        .tabs { display: flex; background: #f8f8f8; border-bottom: 1px solid #dbdbdb; }
+        .tab-btn { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: 500; color: #8e8e8e; border: none; background: none; }
+        .tab-btn.active { color: #0095f6; border-bottom: 2px solid #0095f6; background: #fff; }
         
-        .verified { color: #0095f6; margin-left: 4px; }
+        /* Tab Content */
+        .content-section { display: none; padding: 20px; }
+        .content-section.active { display: block; }
+
+        /* Lists Styles */
+        .list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f0f0f0; align-items: center; }
+        .list-item:last-child { border-bottom: none; }
+        .list-item a { text-decoration: none; color: #0095f6; font-weight: 500; font-size: 14px; }
         
-        .stats { display: flex; justify-content: space-around; margin: 20px 0; border-bottom: 1px solid #efefef; padding-bottom: 20px; }
-        .stat-box { text-align: center; }
-        .stat-val { font-weight: bold; font-size: 18px; display: block; }
-        .stat-label { font-size: 12px; color: #8e8e8e; }
-        
-        .bio { 
-            white-space: pre-wrap; font-size: 14px; color: #262626; line-height: 1.5;
-            background: #fafafa; padding: 10px; border-radius: 8px; margin-top: 10px;
-        }
-        
-        .error-msg { color: red; margin-top: 10px; font-size: 14px; }
+        /* Post Grid */
+        .post-item { margin-bottom: 15px; border: 1px solid #efefef; border-radius: 8px; overflow: hidden; }
+        .post-caption { padding: 10px; font-size: 13px; color: #333; }
+        .post-meta { padding: 0 10px 10px; font-size: 12px; color: #8e8e8e; }
+        .post-link { display: block; padding: 10px; background: #f9f9f9; text-align: center; text-decoration: none; color: #0095f6; font-size: 12px; }
+
+        .hidden { display: none; }
+        .error { color: red; text-align: center; padding: 10px; }
+        .private-badge { background: #ffebee; color: #c62828; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 5px;}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🔍 IG Profile Checker</h2>
-    <input type="text" id="usernameInput" placeholder="Username (tanpa @)" autocomplete="off">
-    <br>
-    <button onclick="checkInstagram()" id="btnCheck">Cek Akun</button>
-
-    <div id="loading" style="display:none; margin-top:20px; color:#8e8e8e;">
-        ⏳ Sedang mengambil data dari Instagram...
+    <div class="search-box">
+        <input type="text" id="username" placeholder="Username Instagram...">
+        <button onclick="fetchData()" id="btnCek">CEK</button>
     </div>
-    
-    <div id="error" class="error-msg" style="display:none;"></div>
 
-    <div id="result">
+    <div id="loading" class="hidden" style="text-align:center; padding:20px;">
+        <p>⏳ Sedang mengambil data lengkap...</p>
+        <small style="color:gray">Bisa memakan waktu hingga 10 detik</small>
+    </div>
+
+    <div id="errorMsg" class="error hidden"></div>
+
+    <div id="resultArea" class="hidden">
+        <!-- Header -->
         <div class="profile-header">
-            <!-- PENTING: referrerpolicy="no-referrer" agar gambar muncul -->
-            <img id="pp" src="" class="profile-img" alt="Profile Pic" referrerpolicy="no-referrer">
-            
-            <h3 id="fullname" style="margin: 5px 0;">Nama Lengkap</h3>
-            <p id="username" style="color:#8e8e8e; margin:0;">@username</p>
-            <small id="is_private" style="color: #ed4956; font-weight:bold; display:none;">🔒 Private Account</small>
+            <img id="u_pp" src="" class="pp" referrerpolicy="no-referrer">
+            <div class="info">
+                <h3>
+                    <span id="u_fullname"></span> 
+                    <span id="u_verified"></span>
+                    <span id="u_private" class="private-badge hidden">🔒 PRIVATE</span>
+                </h3>
+                <p id="u_username">@username</p>
+                <div class="stats">
+                    <span><b id="c_posts">0</b> Posts</span>
+                    <span><b id="c_followers">0</b> Followers</span>
+                    <span><b id="c_following">0</b> Following</span>
+                </div>
+                <div style="margin-top:10px; font-size:13px;" id="u_bio"></div>
+            </div>
         </div>
 
-        <div class="stats">
-            <div class="stat-box"><span class="stat-val" id="posts">0</span><span class="stat-label">Posts</span></div>
-            <div class="stat-box"><span class="stat-val" id="followers">0</span><span class="stat-label">Followers</span></div>
-            <div class="stat-box"><span class="stat-val" id="following">0</span><span class="stat-label">Following</span></div>
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('posts')">Latest Posts</button>
+            <button class="tab-btn" onclick="switchTab('followers')">Followers (10)</button>
+            <button class="tab-btn" onclick="switchTab('following')">Following (10)</button>
         </div>
 
-        <p style="font-weight:600; margin-bottom:5px;">Biografi:</p>
-        <div class="bio" id="bio">-</div>
+        <!-- Contents -->
+        <div id="tab-posts" class="content-section active">
+            <div id="list-posts"></div>
+        </div>
+        <div id="tab-followers" class="content-section">
+            <div id="list-followers"></div>
+        </div>
+        <div id="tab-following" class="content-section">
+            <div id="list-following"></div>
+        </div>
     </div>
 </div>
 
 <script>
-    async function checkInstagram() {
-        const usernameInput = document.getElementById('usernameInput');
-        const username = usernameInput.value.trim();
-        const resultDiv = document.getElementById('result');
-        const loadingDiv = document.getElementById('loading');
-        const errorDiv = document.getElementById('error');
-        const btn = document.getElementById('btnCheck');
-        
-        if (!username) return;
+    async function fetchData() {
+        const user = document.getElementById('username').value;
+        if(!user) return;
 
-        // Reset tampilan
-        resultDiv.style.display = 'none';
-        errorDiv.style.display = 'none';
-        loadingDiv.style.display = 'block';
-        btn.disabled = true;
+        // Reset UI
+        document.getElementById('resultArea').classList.add('hidden');
+        document.getElementById('errorMsg').classList.add('hidden');
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('btnCek').disabled = true;
 
         try {
-            const response = await fetch('/api/check', {
+            const req = await fetch('/api/check', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: username })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: user})
+            });
+            const data = await req.json();
+
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('btnCek').disabled = false;
+
+            if(data.status !== 'success') {
+                document.getElementById('errorMsg').innerText = data.message || "Gagal mengambil data.";
+                document.getElementById('errorMsg').classList.remove('hidden');
+                return;
+            }
+
+            // Populate Header
+            const u = data.user;
+            document.getElementById('u_pp').src = u.profile_pic;
+            document.getElementById('u_fullname').innerText = u.full_name;
+            document.getElementById('u_username').innerText = "@" + u.username;
+            document.getElementById('u_verified').innerText = u.is_verified ? "☑️" : "";
+            document.getElementById('u_bio').innerText = u.biography;
+            
+            document.getElementById('c_posts').innerText = u.media_count;
+            document.getElementById('c_followers').innerText = u.followers_count;
+            document.getElementById('c_following').innerText = u.following_count;
+
+            if(u.is_private) {
+                document.getElementById('u_private').classList.remove('hidden');
+            } else {
+                document.getElementById('u_private').classList.add('hidden');
+            }
+
+            // Populate Posts
+            const postDiv = document.getElementById('list-posts');
+            postDiv.innerHTML = "";
+            if(data.posts.length === 0) postDiv.innerHTML = "<p align='center'>Tidak ada postingan / Akun Private</p>";
+            
+            data.posts.forEach(p => {
+                postDiv.innerHTML += `
+                    <div class="post-item">
+                        <div class="post-caption">${p.caption || "Tanpa Caption"}</div>
+                        <div class="post-meta">❤️ ${p.likes} Likes • 💬 ${p.comments} Komen</div>
+                        <a href="${p.link}" target="_blank" class="post-link">Lihat di Instagram ↗</a>
+                    </div>
+                `;
             });
 
-            const data = await response.json();
-            loadingDiv.style.display = 'none';
-            btn.disabled = false;
+            // Populate Followers
+            renderList('list-followers', data.followers, 'Followers');
 
-            if (data.status === 'success') {
-                // Set Gambar
-                const imgElement = document.getElementById('pp');
-                imgElement.src = data.profile_pic;
-                
-                // Set Data Teks
-                let nameHtml = data.full_name;
-                if(data.is_verified) nameHtml += ' <span class="verified">☑️</span>';
-                
-                document.getElementById('fullname').innerHTML = nameHtml || data.username;
-                document.getElementById('username').innerText = "@" + data.username;
-                document.getElementById('posts').innerText = data.posts.toLocaleString();
-                document.getElementById('followers').innerText = data.followers.toLocaleString();
-                document.getElementById('following').innerText = data.following.toLocaleString();
-                document.getElementById('bio').innerText = data.biography || "(Tidak ada bio)";
-                
-                // Cek Private
-                const privateLabel = document.getElementById('is_private');
-                privateLabel.style.display = data.is_private ? 'block' : 'none';
-                
-                resultDiv.style.display = 'block';
-            } else {
-                errorDiv.innerText = "Gagal: " + (data.message || "Akun tidak ditemukan/Error server");
-                errorDiv.style.display = 'block';
-            }
-        } catch (error) {
-            loadingDiv.style.display = 'none';
-            btn.disabled = false;
-            errorDiv.innerText = "Terjadi kesalahan koneksi ke server.";
-            errorDiv.style.display = 'block';
-            console.error(error);
+            // Populate Following
+            renderList('list-following', data.following, 'Following');
+
+            document.getElementById('resultArea').classList.remove('hidden');
+
+        } catch (e) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('btnCek').disabled = false;
+            alert("Terjadi kesalahan koneksi.");
         }
     }
-    
-    // Enter key support
-    document.getElementById("usernameInput").addEventListener("keypress", function(event) {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            document.getElementById("btnCheck").click();
+
+    function renderList(elementId, dataArray, label) {
+        const el = document.getElementById(elementId);
+        el.innerHTML = "";
+        if(!dataArray || dataArray.length === 0) {
+            el.innerHTML = `<p align='center'>Data ${label} tidak tersedia (Private/Limit)</p>`;
+            return;
         }
-    });
+        dataArray.forEach(item => {
+            el.innerHTML += `
+                <div class="list-item">
+                    <div>
+                        <strong>${item.username}</strong><br>
+                        <small style="color:gray">${item.full_name}</small>
+                    </div>
+                    <a href="${item.link}" target="_blank">Lihat ↗</a>
+                </div>
+            `;
+        });
+    }
+
+    function switchTab(tabName) {
+        // Hide all contents
+        document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+        // Show selected
+        document.getElementById('tab-' + tabName).classList.add('active');
+        event.target.classList.add('active');
+    }
 </script>
 
 </body>
 </html>
+
 
