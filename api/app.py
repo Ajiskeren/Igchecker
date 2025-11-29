@@ -4,6 +4,8 @@ import os
 import json
 import requests
 import base64
+import time
+import random
 
 app = Flask(__name__, template_folder='../templates')
 
@@ -16,24 +18,22 @@ def load_session():
             cl.set_settings(json.loads(session_json))
             return True
         return False
-    except Exception as e:
-        print(f"Warning Session: {e}")
-        return False
+    except: return False
 
 load_session()
 
 def image_to_base64(url):
-    """Download gambar dan ubah jadi kode Base64 agar anti-blokir"""
+    """Convert gambar ke Base64 dengan Timeout ketat"""
     try:
         if not url: return None
-        # Timeout singkat (3 detik) agar proses keseluruhan tidak lama
-        response = requests.get(url, timeout=3) 
+        # Timeout sangat singkat agar server tidak hang
+        response = requests.get(url, timeout=2) 
         if response.status_code == 200:
             encoded_string = base64.b64encode(response.content).decode('utf-8')
             return f"data:image/jpeg;base64,{encoded_string}"
-        return None
+        return "https://via.placeholder.com/150?text=Error+Img"
     except:
-        return None
+        return "https://via.placeholder.com/150?text=Timeout"
 
 @app.route('/')
 def home():
@@ -48,11 +48,14 @@ def check_user():
         return jsonify({'error': 'Username kosong'}), 400
 
     try:
-        # 1. Info Dasar
+        # 1. Info Dasar (Biasanya jarang kena limit)
         info = cl.user_info_by_username(target_username)
         user_id = info.pk
         
-        # Profile Pic Base64
+        # Jeda sedetik biar dikira manusia
+        time.sleep(random.uniform(1, 2))
+
+        # Convert PP
         pp_base64 = image_to_base64(info.profile_pic_url_hd or info.profile_pic_url)
 
         result = {
@@ -66,62 +69,64 @@ def check_user():
                 'media_count': info.media_count,
                 'is_private': info.is_private,
                 'is_verified': info.is_verified,
-                'profile_pic': pp_base64 or "https://via.placeholder.com/150"
+                'profile_pic': pp_base64
             },
             'posts': [],
             'followers': [],
-            'following': []
+            'following': [],
+            'logs': [] # Untuk memberi info ke user jika ada data yang gagal diambil
         }
 
+        # Jika Private, stop disini
         if info.is_private:
-            result['note'] = "Akun Private"
+            result['logs'].append("Akun Private: Tidak bisa ambil data lanjutan.")
             return jsonify(result)
 
-        # 2. Ambil 6 Postingan Terakhir (Kita convert gambarnya ke Base64)
+        # 2. AMBIL POST (Gunakan Try-Except terpisah)
         try:
-            medias = cl.user_medias(user_id, amount=6)
+            # Ambil cuma 3 post dulu biar ringan & aman
+            medias = cl.user_medias(user_id, amount=3)
             for m in medias:
-                # Logika mencari URL thumbnail yang valid
-                thumb_url = m.thumbnail_url
-                if not thumb_url and m.resources:
-                    thumb_url = m.resources[0].thumbnail_url
-                
-                # Convert ke Base64 (PENTING AGAR MUNCUL)
-                thumb_base64 = image_to_base64(thumb_url)
-
+                thumb_base64 = image_to_base64(m.thumbnail_url or m.resources[0].thumbnail_url if m.resources else None)
                 result['posts'].append({
-                    'caption': m.caption_text[:80] + "..." if m.caption_text else "",
-                    'likes': m.like_count,
-                    'comments': m.comment_count,
+                    'caption': m.caption_text[:50] + "..." if m.caption_text else "",
                     'link': f"https://instagram.com/p/{m.code}",
-                    'thumbnail': thumb_base64 or "https://via.placeholder.com/300?text=No+Image"
+                    'thumbnail': thumb_base64
                 })
         except Exception as e:
-            print(f"Err Post: {e}")
+            result['logs'].append(f"Gagal ambil Post: {str(e)}")
 
-        # 3. Ambil 50 Followers (Disimpan di memori browser nanti)
+        # 3. AMBIL FOLLOWERS (Try-Except terpisah)
+        # Bagian ini yang paling sering kena blokir
         try:
-            f_data = cl.user_followers(user_id, amount=50)
+            time.sleep(1) # Jeda lagi
+            # Ambil 10 saja cukup untuk demo
+            f_data = cl.user_followers(user_id, amount=12)
             for uid, user in f_data.items():
                 result['followers'].append({
                     'username': user.username,
                     'full_name': user.full_name,
                     'link': f"https://instagram.com/{user.username}"
                 })
-        except: pass
+        except Exception as e:
+            # Jika followers gagal, jangan error 500. Tetap tampilkan profile!
+            result['logs'].append("Gagal ambil Followers (Mungkin kena limit IG).")
 
-        # 4. Ambil 50 Following
+        # 4. AMBIL FOLLOWING
         try:
-            f_ing_data = cl.user_following(user_id, amount=50)
+            time.sleep(0.5)
+            f_ing_data = cl.user_following(user_id, amount=12)
             for uid, user in f_ing_data.items():
                 result['following'].append({
                     'username': user.username,
                     'full_name': user.full_name,
                     'link': f"https://instagram.com/{user.username}"
                 })
-        except: pass
+        except Exception as e:
+            result['logs'].append("Gagal ambil Following.")
 
         return jsonify(result)
 
     except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        # Error fatal (misal login session mati total)
+        return jsonify({'status': 'error', 'message': f"Akun Tumbal Bermasalah: {str(e)}"}), 500
