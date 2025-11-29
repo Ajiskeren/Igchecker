@@ -3,94 +3,340 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IG Pro Checker</title>
+    <title>Instagram Checker</title>
+    <!-- Mengambil Font Inter dari Google Fonts agar terlihat modern -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS SEDERHANA & BERSIH */
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #fafafa; margin: 0; padding: 20px; color: #262626; }
-        .container { max-width: 500px; margin: auto; background: white; border-radius: 8px; border: 1px solid #dbdbdb; overflow: hidden; }
+        :root {
+            --primary: #0095f6;
+            --gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-main: #1c1e21;
+            --text-secondary: #65676b;
+            --border: #dbdbdb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            overflow: hidden;
+            height: fit-content;
+            transition: all 0.3s ease;
+        }
+
+        /* --- SEARCH AREA --- */
+        .search-area {
+            padding: 25px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 15px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            background: #fafafa;
+            font-size: 15px;
+            outline: none;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        button#btnCek {
+            width: 100%;
+            padding: 14px;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            box-shadow: 0 4px 15px rgba(220, 39, 67, 0.3);
+        }
+
+        button#btnCek:active { transform: scale(0.98); }
+        button#btnCek:disabled { opacity: 0.6; cursor: wait; }
+
+        /* --- PROFILE HEADER --- */
+        .profile-header {
+            padding: 25px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .pp-container {
+            position: relative;
+        }
+
+        .pp {
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px var(--gradient); /* Ring Instagram */
+            padding: 2px;
+            background: white;
+        }
+
+        .info { flex: 1; }
         
-        .search-area { padding: 20px; text-align: center; border-bottom: 1px solid #efefef; }
-        input { padding: 10px; width: 60%; border: 1px solid #dbdbdb; border-radius: 4px; background: #fafafa; }
-        button#btnCek { padding: 10px 20px; background: #0095f6; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; }
-        button#btnCek:disabled { opacity: 0.7; cursor: not-allowed; }
+        .username-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
 
-        .profile-header { padding: 20px; display: flex; align-items: center; border-bottom: 1px solid #efefef; }
-        .pp { width: 77px; height: 77px; border-radius: 50%; margin-right: 20px; border: 1px solid #dbdbdb; }
-        .stats { display: flex; gap: 15px; margin: 10px 0; font-size: 14px; }
-        .bio { font-size: 14px; white-space: pre-wrap; }
+        .username-row h3 { margin: 0; font-size: 18px; font-weight: 700; }
+        .verified-badge { color: var(--primary); font-size: 16px; }
 
-        .tabs { display: flex; border-bottom: 1px solid #dbdbdb; }
-        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; color: #8e8e8e; border-bottom: 2px solid transparent; font-weight: 600; font-size: 14px;}
-        .tab.active { color: #262626; border-bottom: 2px solid #262626; }
+        .handle { color: var(--text-secondary); font-size: 14px; margin-bottom: 12px; display: block; }
 
-        .content { display: none; padding: 0; }
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 10px;
+        }
+
+        .stat-item { text-align: center; font-size: 12px; color: var(--text-secondary); }
+        .stat-item b { display: block; font-size: 15px; color: var(--text-main); margin-bottom: 2px; }
+
+        .bio {
+            padding: 0 25px 20px;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            color: #444;
+        }
+
+        /* --- TABS --- */
+        .tabs {
+            display: flex;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .tab.active {
+            color: var(--text-main);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40%;
+            height: 3px;
+            background: var(--text-main);
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* --- CONTENT AREAS --- */
+        .content { display: none; animation: fadeUp 0.4s ease; }
         .content.active { display: block; }
 
-        /* POST GRID */
-        .post-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px; }
-        .post-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; cursor: pointer; }
-        
-        /* LIST FOLLOWERS */
-        .user-list { list-style: none; padding: 0; margin: 0; }
-        .user-item { display: flex; justify-content: space-between; padding: 10px 20px; align-items: center; border-bottom: 1px solid #fafafa; }
-        .user-item a { text-decoration: none; color: #0095f6; font-weight: 600; font-size: 12px; }
+        /* Grid Posts */
+        .post-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3px;
+            padding-bottom: 20px;
+        }
 
-        .load-more-btn { width: 100%; padding: 15px; background: white; border: none; color: #0095f6; font-weight: bold; cursor: pointer; border-top: 1px solid #efefef; }
-        .load-more-btn:hover { background: #fafafa; }
-        .hidden { display: none; }
+        .post-img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            cursor: pointer;
+            transition: filter 0.2s;
+            background: #eee;
+        }
+        .post-img:hover { filter: brightness(0.9); }
+
+        /* List Followers/Following */
+        .user-list { list-style: none; padding: 0; margin: 0; }
+        
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .user-item:hover { background: #fafafa; }
+
+        .user-info-mini { display: flex; flex-direction: column; }
+        .u-name { font-weight: 600; font-size: 14px; color: var(--text-main); }
+        .u-full { font-size: 12px; color: var(--text-secondary); margin-top: 2px;}
+
+        .btn-visit {
+            padding: 6px 15px;
+            background: #f0f2f5;
+            color: var(--text-main);
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .btn-visit:hover { background: #dce0e6; }
+
+        .load-more-btn {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .load-more-btn:hover { text-decoration: underline; }
+
+        /* --- UTILS --- */
+        .hidden { display: none !important; }
+        
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loading Spinner Sederhana */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid var(--primary);
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .status-msg { margin-top: 15px; font-size: 13px; color: var(--text-secondary); }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <!-- SEARCH SECTION -->
     <div class="search-area">
-        <input type="text" id="username" placeholder="Username...">
-        <button id="btnCek" onclick="startCheck()">Cek Akun</button>
-        <div id="status" style="margin-top:10px; font-size:12px; color:gray;"></div>
+        <h2 style="margin: 0 0 20px 0; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">IG Checker</h2>
+        <div class="input-group">
+            <input type="text" id="username" placeholder="Masukkan Username (tanpa @)..." autocomplete="off">
+        </div>
+        <button id="btnCek" onclick="startCheck()">Cek Profil</button>
+        <div id="status" class="status-msg"></div>
     </div>
 
+    <!-- RESULT SECTION -->
     <div id="result" class="hidden">
+        
+        <!-- HEADER PROFILE -->
         <div class="profile-header">
-            <img id="pp" class="pp" src="">
-            <div>
-                <h3 id="fname" style="margin:0; font-size:16px;">Name</h3>
-                <div style="color:gray; font-size:14px; margin-bottom:5px;" id="uname">@username</div>
-                <div class="stats">
-                    <span><b id="s_posts">0</b> posts</span>
-                    <span><b id="s_followers">0</b> followers</span>
-                    <span><b id="s_following">0</b> following</span>
+            <div class="pp-container">
+                <img id="pp" class="pp" src="" referrerpolicy="no-referrer">
+            </div>
+            <div class="info">
+                <div class="username-row">
+                    <h3 id="fname">Name</h3>
+                    <span id="verified-badge" class="verified-badge hidden">☑️</span>
                 </div>
-                <div class="bio" id="bio"></div>
+                <span class="handle" id="uname">@username</span>
+                
+                <div class="stats-row">
+                    <div class="stat-item"><b id="s_posts">0</b>Post</div>
+                    <div class="stat-item"><b id="s_followers">0</b>Followers</div>
+                    <div class="stat-item"><b id="s_following">0</b>Following</div>
+                </div>
             </div>
         </div>
+        
+        <div class="bio" id="bio"></div>
 
+        <!-- TABS NAVIGATION -->
         <div class="tabs">
             <div class="tab active" onclick="openTab('posts')">POSTS</div>
             <div class="tab" onclick="openTab('followers')">FOLLOWERS</div>
             <div class="tab" onclick="openTab('following')">FOLLOWING</div>
         </div>
 
-        <!-- POSTS TAB -->
+        <!-- CONTENT: POSTS -->
         <div id="view-posts" class="content active">
             <div class="post-grid" id="grid-posts"></div>
         </div>
 
-        <!-- FOLLOWERS TAB -->
+        <!-- CONTENT: FOLLOWERS -->
         <div id="view-followers" class="content">
             <div class="user-list" id="list-followers"></div>
-            <button class="load-more-btn hidden" id="btn-more-followers" onclick="loadMore('followers')">Muat Lebih Banyak...</button>
+            <button class="load-more-btn hidden" id="btn-more-followers" onclick="loadMore('followers')">Muat Lebih Banyak</button>
         </div>
 
-        <!-- FOLLOWING TAB -->
+        <!-- CONTENT: FOLLOWING -->
         <div id="view-following" class="content">
             <div class="user-list" id="list-following"></div>
-            <button class="load-more-btn hidden" id="btn-more-following" onclick="loadMore('following')">Muat Lebih Banyak...</button>
+            <button class="load-more-btn hidden" id="btn-more-following" onclick="loadMore('following')">Muat Lebih Banyak</button>
         </div>
     </div>
 </div>
 
 <script>
-    // Variabel Global untuk menyimpan data
+    // --- LOGIC JAVASCRIPT (TIDAK BERUBAH DARI SEBELUMNYA) ---
     let allFollowers = [];
     let allFollowing = [];
     let indexFollowers = 0;
@@ -101,10 +347,15 @@
         const user = document.getElementById('username').value;
         if (!user) return;
 
-        // Reset UI
-        document.getElementById('status').innerText = "⏳ Sedang mengambil data (bisa sampai 10 detik)...";
-        document.getElementById('result').classList.add('hidden');
-        document.getElementById('btnCek').disabled = true;
+        const btn = document.getElementById('btnCek');
+        const statusDiv = document.getElementById('status');
+        const resultDiv = document.getElementById('result');
+
+        // UI Loading State
+        statusDiv.innerHTML = '<div class="loader"></div> Sedang menghubungkan ke server...';
+        resultDiv.classList.add('hidden');
+        btn.disabled = true;
+        btn.innerText = "Memproses...";
 
         try {
             const req = await fetch('/api/check', {
@@ -114,46 +365,66 @@
             });
             const data = await req.json();
 
+            // Kembalikan tombol
+            btn.disabled = false;
+            btn.innerText = "Cek Profil";
+
             if (data.status !== 'success') {
-                document.getElementById('status').innerText = "❌ Gagal: " + (data.message || "Unknown Error");
-                document.getElementById('btnCek').disabled = false;
+                statusDiv.innerHTML = `<span style="color:red">❌ ${data.message || "Gagal mengambil data"}</span>`;
                 return;
             }
 
-            document.getElementById('status').innerText = "";
+            // Tampilkan Data
+            statusDiv.innerHTML = "";
             renderProfile(data);
+
+            // Cek Logs Error (Safety Version)
+            if(data.logs && data.logs.length > 0) {
+                statusDiv.innerHTML = `<span style="color:#f09433">⚠️ Info: ${data.logs[0]}</span>`;
+            }
+
         } catch (e) {
-            document.getElementById('status').innerText = "❌ Error Koneksi";
-        } finally {
-            document.getElementById('btnCek').disabled = false;
+            btn.disabled = false;
+            btn.innerText = "Cek Profil";
+            statusDiv.innerHTML = '<span style="color:red">❌ Terjadi kesalahan koneksi/server.</span>';
         }
     }
 
     function renderProfile(data) {
         const u = data.user;
         document.getElementById('pp').src = u.profile_pic;
-        document.getElementById('fname').innerText = u.full_name;
-        document.getElementById('uname').innerText = "@" + u.username + (u.is_verified ? " ☑️" : "");
-        document.getElementById('bio').innerText = u.biography;
-        document.getElementById('s_posts').innerText = u.media_count;
-        document.getElementById('s_followers').innerText = u.followers_count;
-        document.getElementById('s_following').innerText = u.following_count;
+        document.getElementById('fname').innerText = u.full_name || u.username;
+        document.getElementById('uname').innerText = "@" + u.username;
+        
+        // Verified Badge Logic
+        if(u.is_verified) document.getElementById('verified-badge').classList.remove('hidden');
+        else document.getElementById('verified-badge').classList.add('hidden');
 
-        // Render Posts (Grid)
+        document.getElementById('bio').innerText = u.biography || "";
+        document.getElementById('s_posts').innerText = formatNumber(u.media_count);
+        document.getElementById('s_followers').innerText = formatNumber(u.followers_count);
+        document.getElementById('s_following').innerText = formatNumber(u.following_count);
+
+        // Render Posts
         const postDiv = document.getElementById('grid-posts');
         postDiv.innerHTML = "";
         data.posts.forEach(p => {
-            postDiv.innerHTML += `<a href="${p.link}" target="_blank"><img src="${p.thumbnail}" class="post-img" title="${p.caption}"></a>`;
+            postDiv.innerHTML += `
+                <a href="${p.link}" target="_blank" style="display:block; overflow:hidden;">
+                    <img src="${p.thumbnail}" class="post-img" loading="lazy">
+                </a>`;
         });
-        if(data.posts.length === 0) postDiv.innerHTML = "<div style='padding:20px; grid-column:span 3; text-align:center'>Tidak ada postingan / Private</div>";
+        
+        if(data.posts.length === 0) {
+            postDiv.innerHTML = "<div style='grid-column:span 3; text-align:center; padding:30px; color:#999; font-size:13px;'>Tidak ada postingan yang dapat ditampilkan.</div>";
+        }
 
-        // Siapkan Data Followers & Following
+        // Siapkan Data List
         allFollowers = data.followers;
         allFollowing = data.following;
         indexFollowers = 0;
         indexFollowing = 0;
 
-        // Render Awal (10 Pertama)
         document.getElementById('list-followers').innerHTML = "";
         document.getElementById('list-following').innerHTML = "";
         
@@ -181,11 +452,11 @@
         const container = document.getElementById(containerId);
         const btn = document.getElementById(btnId);
         
-        // Ambil slice data berikutnya
+        // Ambil Batch Data
         const nextBatch = sourceData.slice(currentIndex, currentIndex + LIMIT_PER_PAGE);
         
         if (nextBatch.length === 0 && currentIndex === 0) {
-            container.innerHTML = "<div style='padding:20px; text-align:center; color:gray'>Data tidak tersedia / Private</div>";
+            container.innerHTML = "<div style='padding:20px; text-align:center; color:#ccc; font-size:13px;'>List Kosong / Private</div>";
             btn.classList.add('hidden');
             return;
         }
@@ -193,25 +464,25 @@
         nextBatch.forEach(u => {
             container.innerHTML += `
                 <li class="user-item">
-                    <div>
-                        <div style="font-weight:600">${u.username}</div>
-                        <div style="font-size:12px; color:gray">${u.full_name}</div>
+                    <div class="user-info-mini">
+                        <span class="u-name">${u.username}</span>
+                        <span class="u-full">${truncate(u.full_name, 20)}</span>
                     </div>
-                    <a href="${u.link}" target="_blank">Lihat</a>
+                    <a href="${u.link}" target="_blank" class="btn-visit">Lihat</a>
                 </li>
             `;
         });
 
-        // Update Index
+        // Update Index Global
         if (type === 'followers') indexFollowers += nextBatch.length;
         else indexFollowing += nextBatch.length;
 
-        // Cek apakah tombol Load More masih perlu muncul
+        // Atur Visibility Tombol Load More
         if ((type === 'followers' ? indexFollowers : indexFollowing) >= sourceData.length) {
             btn.classList.add('hidden');
         } else {
             btn.classList.remove('hidden');
-            btn.innerText = `Muat Lebih Banyak (${sourceData.length - (type === 'followers' ? indexFollowers : indexFollowing)} tersisa)`;
+            btn.innerText = "Muat Lebih Banyak";
         }
     }
 
@@ -220,9 +491,32 @@
         document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
         
         document.getElementById('view-' + tabName).classList.add('active');
-        // Hacky way to highlight tab button text, better use IDs
-        event.target.classList.add('active');
+        // Set active class pada tombol yang diklik
+        const tabs = document.querySelectorAll('.tab');
+        if(tabName === 'posts') tabs[0].classList.add('active');
+        if(tabName === 'followers') tabs[1].classList.add('active');
+        if(tabName === 'following') tabs[2].classList.add('active');
     }
+
+    // Helper: Format Angka (1.2k, 1M)
+    function formatNumber(num) {
+        if(num >= 1000000) return (num/1000000).toFixed(1) + 'M';
+        if(num >= 1000) return (num/1000).toFixed(1) + 'K';
+        return num;
+    }
+
+    // Helper: Potong Text Panjang
+    function truncate(str, n){
+        return (str.length > n) ? str.substr(0, n-1) + '...' : str;
+    }
+
+    // Enter Key Listener
+    document.getElementById("username").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            document.getElementById("btnCek").click();
+        }
+    });
 </script>
 
 </body>
