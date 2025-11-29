@@ -3,113 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IG Super Checker</title>
+    <title>IG Pro Checker</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #fafafa; color: #262626; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; }
+        /* CSS SEDERHANA & BERSIH */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #fafafa; margin: 0; padding: 20px; color: #262626; }
+        .container { max-width: 500px; margin: auto; background: white; border-radius: 8px; border: 1px solid #dbdbdb; overflow: hidden; }
         
-        /* Search Box */
-        .search-box { padding: 20px; background: #fff; border-bottom: 1px solid #dbdbdb; text-align: center; }
-        input { width: 70%; padding: 10px; border: 1px solid #dbdbdb; border-radius: 6px; outline: none; }
-        button { padding: 10px 20px; background: #0095f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        button:disabled { background: #b2dffc; }
+        .search-area { padding: 20px; text-align: center; border-bottom: 1px solid #efefef; }
+        input { padding: 10px; width: 60%; border: 1px solid #dbdbdb; border-radius: 4px; background: #fafafa; }
+        button#btnCek { padding: 10px 20px; background: #0095f6; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; }
+        button#btnCek:disabled { opacity: 0.7; cursor: not-allowed; }
 
-        /* Profile Header */
         .profile-header { padding: 20px; display: flex; align-items: center; border-bottom: 1px solid #efefef; }
-        .pp { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-right: 20px; border: 3px solid #eee; }
-        .info h3 { margin: 0; font-size: 18px; }
-        .info p { margin: 5px 0 0; color: #8e8e8e; font-size: 14px; }
-        .stats { display: flex; gap: 15px; margin-top: 10px; font-size: 14px; font-weight: 500; }
-        
-        /* Tabs Navigation */
-        .tabs { display: flex; background: #f8f8f8; border-bottom: 1px solid #dbdbdb; }
-        .tab-btn { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: 500; color: #8e8e8e; border: none; background: none; }
-        .tab-btn.active { color: #0095f6; border-bottom: 2px solid #0095f6; background: #fff; }
-        
-        /* Tab Content */
-        .content-section { display: none; padding: 20px; }
-        .content-section.active { display: block; }
+        .pp { width: 77px; height: 77px; border-radius: 50%; margin-right: 20px; border: 1px solid #dbdbdb; }
+        .stats { display: flex; gap: 15px; margin: 10px 0; font-size: 14px; }
+        .bio { font-size: 14px; white-space: pre-wrap; }
 
-        /* Lists Styles */
-        .list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f0f0f0; align-items: center; }
-        .list-item:last-child { border-bottom: none; }
-        .list-item a { text-decoration: none; color: #0095f6; font-weight: 500; font-size: 14px; }
-        
-        /* Post Grid */
-        .post-item { margin-bottom: 15px; border: 1px solid #efefef; border-radius: 8px; overflow: hidden; }
-        .post-caption { padding: 10px; font-size: 13px; color: #333; }
-        .post-meta { padding: 0 10px 10px; font-size: 12px; color: #8e8e8e; }
-        .post-link { display: block; padding: 10px; background: #f9f9f9; text-align: center; text-decoration: none; color: #0095f6; font-size: 12px; }
+        .tabs { display: flex; border-bottom: 1px solid #dbdbdb; }
+        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; color: #8e8e8e; border-bottom: 2px solid transparent; font-weight: 600; font-size: 14px;}
+        .tab.active { color: #262626; border-bottom: 2px solid #262626; }
 
+        .content { display: none; padding: 0; }
+        .content.active { display: block; }
+
+        /* POST GRID */
+        .post-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px; }
+        .post-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; cursor: pointer; }
+        
+        /* LIST FOLLOWERS */
+        .user-list { list-style: none; padding: 0; margin: 0; }
+        .user-item { display: flex; justify-content: space-between; padding: 10px 20px; align-items: center; border-bottom: 1px solid #fafafa; }
+        .user-item a { text-decoration: none; color: #0095f6; font-weight: 600; font-size: 12px; }
+
+        .load-more-btn { width: 100%; padding: 15px; background: white; border: none; color: #0095f6; font-weight: bold; cursor: pointer; border-top: 1px solid #efefef; }
+        .load-more-btn:hover { background: #fafafa; }
         .hidden { display: none; }
-        .error { color: red; text-align: center; padding: 10px; }
-        .private-badge { background: #ffebee; color: #c62828; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 5px;}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="search-box">
-        <input type="text" id="username" placeholder="Username Instagram...">
-        <button onclick="fetchData()" id="btnCek">CEK</button>
+    <div class="search-area">
+        <input type="text" id="username" placeholder="Username...">
+        <button id="btnCek" onclick="startCheck()">Cek Akun</button>
+        <div id="status" style="margin-top:10px; font-size:12px; color:gray;"></div>
     </div>
 
-    <div id="loading" class="hidden" style="text-align:center; padding:20px;">
-        <p>⏳ Sedang mengambil data lengkap...</p>
-        <small style="color:gray">Bisa memakan waktu hingga 10 detik</small>
-    </div>
-
-    <div id="errorMsg" class="error hidden"></div>
-
-    <div id="resultArea" class="hidden">
-        <!-- Header -->
+    <div id="result" class="hidden">
         <div class="profile-header">
-            <img id="u_pp" src="" class="pp" referrerpolicy="no-referrer">
-            <div class="info">
-                <h3>
-                    <span id="u_fullname"></span> 
-                    <span id="u_verified"></span>
-                    <span id="u_private" class="private-badge hidden">🔒 PRIVATE</span>
-                </h3>
-                <p id="u_username">@username</p>
+            <img id="pp" class="pp" src="">
+            <div>
+                <h3 id="fname" style="margin:0; font-size:16px;">Name</h3>
+                <div style="color:gray; font-size:14px; margin-bottom:5px;" id="uname">@username</div>
                 <div class="stats">
-                    <span><b id="c_posts">0</b> Posts</span>
-                    <span><b id="c_followers">0</b> Followers</span>
-                    <span><b id="c_following">0</b> Following</span>
+                    <span><b id="s_posts">0</b> posts</span>
+                    <span><b id="s_followers">0</b> followers</span>
+                    <span><b id="s_following">0</b> following</span>
                 </div>
-                <div style="margin-top:10px; font-size:13px;" id="u_bio"></div>
+                <div class="bio" id="bio"></div>
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('posts')">Latest Posts</button>
-            <button class="tab-btn" onclick="switchTab('followers')">Followers (10)</button>
-            <button class="tab-btn" onclick="switchTab('following')">Following (10)</button>
+            <div class="tab active" onclick="openTab('posts')">POSTS</div>
+            <div class="tab" onclick="openTab('followers')">FOLLOWERS</div>
+            <div class="tab" onclick="openTab('following')">FOLLOWING</div>
         </div>
 
-        <!-- Contents -->
-        <div id="tab-posts" class="content-section active">
-            <div id="list-posts"></div>
+        <!-- POSTS TAB -->
+        <div id="view-posts" class="content active">
+            <div class="post-grid" id="grid-posts"></div>
         </div>
-        <div id="tab-followers" class="content-section">
-            <div id="list-followers"></div>
+
+        <!-- FOLLOWERS TAB -->
+        <div id="view-followers" class="content">
+            <div class="user-list" id="list-followers"></div>
+            <button class="load-more-btn hidden" id="btn-more-followers" onclick="loadMore('followers')">Muat Lebih Banyak...</button>
         </div>
-        <div id="tab-following" class="content-section">
-            <div id="list-following"></div>
+
+        <!-- FOLLOWING TAB -->
+        <div id="view-following" class="content">
+            <div class="user-list" id="list-following"></div>
+            <button class="load-more-btn hidden" id="btn-more-following" onclick="loadMore('following')">Muat Lebih Banyak...</button>
         </div>
     </div>
 </div>
 
 <script>
-    async function fetchData() {
+    // Variabel Global untuk menyimpan data
+    let allFollowers = [];
+    let allFollowing = [];
+    let indexFollowers = 0;
+    let indexFollowing = 0;
+    const LIMIT_PER_PAGE = 10;
+
+    async function startCheck() {
         const user = document.getElementById('username').value;
-        if(!user) return;
+        if (!user) return;
 
         // Reset UI
-        document.getElementById('resultArea').classList.add('hidden');
-        document.getElementById('errorMsg').classList.add('hidden');
-        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('status').innerText = "⏳ Sedang mengambil data (bisa sampai 10 detik)...";
+        document.getElementById('result').classList.add('hidden');
         document.getElementById('btnCek').disabled = true;
 
         try {
@@ -120,90 +114,113 @@
             });
             const data = await req.json();
 
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('btnCek').disabled = false;
-
-            if(data.status !== 'success') {
-                document.getElementById('errorMsg').innerText = data.message || "Gagal mengambil data.";
-                document.getElementById('errorMsg').classList.remove('hidden');
+            if (data.status !== 'success') {
+                document.getElementById('status').innerText = "❌ Gagal: " + (data.message || "Unknown Error");
+                document.getElementById('btnCek').disabled = false;
                 return;
             }
 
-            // Populate Header
-            const u = data.user;
-            document.getElementById('u_pp').src = u.profile_pic;
-            document.getElementById('u_fullname').innerText = u.full_name;
-            document.getElementById('u_username').innerText = "@" + u.username;
-            document.getElementById('u_verified').innerText = u.is_verified ? "☑️" : "";
-            document.getElementById('u_bio').innerText = u.biography;
-            
-            document.getElementById('c_posts').innerText = u.media_count;
-            document.getElementById('c_followers').innerText = u.followers_count;
-            document.getElementById('c_following').innerText = u.following_count;
-
-            if(u.is_private) {
-                document.getElementById('u_private').classList.remove('hidden');
-            } else {
-                document.getElementById('u_private').classList.add('hidden');
-            }
-
-            // Populate Posts
-            const postDiv = document.getElementById('list-posts');
-            postDiv.innerHTML = "";
-            if(data.posts.length === 0) postDiv.innerHTML = "<p align='center'>Tidak ada postingan / Akun Private</p>";
-            
-            data.posts.forEach(p => {
-                postDiv.innerHTML += `
-                    <div class="post-item">
-                        <div class="post-caption">${p.caption || "Tanpa Caption"}</div>
-                        <div class="post-meta">❤️ ${p.likes} Likes • 💬 ${p.comments} Komen</div>
-                        <a href="${p.link}" target="_blank" class="post-link">Lihat di Instagram ↗</a>
-                    </div>
-                `;
-            });
-
-            // Populate Followers
-            renderList('list-followers', data.followers, 'Followers');
-
-            // Populate Following
-            renderList('list-following', data.following, 'Following');
-
-            document.getElementById('resultArea').classList.remove('hidden');
-
+            document.getElementById('status').innerText = "";
+            renderProfile(data);
         } catch (e) {
-            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('status').innerText = "❌ Error Koneksi";
+        } finally {
             document.getElementById('btnCek').disabled = false;
-            alert("Terjadi kesalahan koneksi.");
         }
     }
 
-    function renderList(elementId, dataArray, label) {
-        const el = document.getElementById(elementId);
-        el.innerHTML = "";
-        if(!dataArray || dataArray.length === 0) {
-            el.innerHTML = `<p align='center'>Data ${label} tidak tersedia (Private/Limit)</p>`;
+    function renderProfile(data) {
+        const u = data.user;
+        document.getElementById('pp').src = u.profile_pic;
+        document.getElementById('fname').innerText = u.full_name;
+        document.getElementById('uname').innerText = "@" + u.username + (u.is_verified ? " ☑️" : "");
+        document.getElementById('bio').innerText = u.biography;
+        document.getElementById('s_posts').innerText = u.media_count;
+        document.getElementById('s_followers').innerText = u.followers_count;
+        document.getElementById('s_following').innerText = u.following_count;
+
+        // Render Posts (Grid)
+        const postDiv = document.getElementById('grid-posts');
+        postDiv.innerHTML = "";
+        data.posts.forEach(p => {
+            postDiv.innerHTML += `<a href="${p.link}" target="_blank"><img src="${p.thumbnail}" class="post-img" title="${p.caption}"></a>`;
+        });
+        if(data.posts.length === 0) postDiv.innerHTML = "<div style='padding:20px; grid-column:span 3; text-align:center'>Tidak ada postingan / Private</div>";
+
+        // Siapkan Data Followers & Following
+        allFollowers = data.followers;
+        allFollowing = data.following;
+        indexFollowers = 0;
+        indexFollowing = 0;
+
+        // Render Awal (10 Pertama)
+        document.getElementById('list-followers').innerHTML = "";
+        document.getElementById('list-following').innerHTML = "";
+        
+        loadMore('followers');
+        loadMore('following');
+
+        document.getElementById('result').classList.remove('hidden');
+    }
+
+    function loadMore(type) {
+        let sourceData, currentIndex, containerId, btnId;
+
+        if (type === 'followers') {
+            sourceData = allFollowers;
+            currentIndex = indexFollowers;
+            containerId = 'list-followers';
+            btnId = 'btn-more-followers';
+        } else {
+            sourceData = allFollowing;
+            currentIndex = indexFollowing;
+            containerId = 'list-following';
+            btnId = 'btn-more-following';
+        }
+
+        const container = document.getElementById(containerId);
+        const btn = document.getElementById(btnId);
+        
+        // Ambil slice data berikutnya
+        const nextBatch = sourceData.slice(currentIndex, currentIndex + LIMIT_PER_PAGE);
+        
+        if (nextBatch.length === 0 && currentIndex === 0) {
+            container.innerHTML = "<div style='padding:20px; text-align:center; color:gray'>Data tidak tersedia / Private</div>";
+            btn.classList.add('hidden');
             return;
         }
-        dataArray.forEach(item => {
-            el.innerHTML += `
-                <div class="list-item">
+
+        nextBatch.forEach(u => {
+            container.innerHTML += `
+                <li class="user-item">
                     <div>
-                        <strong>${item.username}</strong><br>
-                        <small style="color:gray">${item.full_name}</small>
+                        <div style="font-weight:600">${u.username}</div>
+                        <div style="font-size:12px; color:gray">${u.full_name}</div>
                     </div>
-                    <a href="${item.link}" target="_blank">Lihat ↗</a>
-                </div>
+                    <a href="${u.link}" target="_blank">Lihat</a>
+                </li>
             `;
         });
+
+        // Update Index
+        if (type === 'followers') indexFollowers += nextBatch.length;
+        else indexFollowing += nextBatch.length;
+
+        // Cek apakah tombol Load More masih perlu muncul
+        if ((type === 'followers' ? indexFollowers : indexFollowing) >= sourceData.length) {
+            btn.classList.add('hidden');
+        } else {
+            btn.classList.remove('hidden');
+            btn.innerText = `Muat Lebih Banyak (${sourceData.length - (type === 'followers' ? indexFollowers : indexFollowing)} tersisa)`;
+        }
     }
 
-    function switchTab(tabName) {
-        // Hide all contents
-        document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-
-        // Show selected
-        document.getElementById('tab-' + tabName).classList.add('active');
+    function openTab(tabName) {
+        document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById('view-' + tabName).classList.add('active');
+        // Hacky way to highlight tab button text, better use IDs
         event.target.classList.add('active');
     }
 </script>
