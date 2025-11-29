@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instagram Checker API</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        background: #f4f4f4;
+        text-align: center;
+        padding: 20px;
+      }
+      .container {
+        max-width: 400px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      input {
+        width: 80%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      button {
+        padding: 10px 20px;
+        background: #0095f6;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0077c2;
+      }
+
+      #result {
+        margin-top: 20px;
+        text-align: left;
+        display: none;
+      }
+      .profile-header {
+        text-align: center;
+        margin-bottom: 15px;
+      }
+      .profile-img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #ddd;
+      }
+      .stats {
+        display: flex;
+        justify-content: space-around;
+        margin: 15px 0;
+        background: #fafafa;
+        padding: 10px;
+        border-radius: 8px;
+      }
+      .stat-box {
+        text-align: center;
+      }
+      .stat-val {
+        font-weight: bold;
+        font-size: 18px;
+      }
+      .stat-label {
+        font-size: 12px;
+        color: #777;
+      }
+      .bio {
+        white-space: pre-wrap;
+        font-size: 14px;
+        color: #333;
+        background: #f9f9f9;
+        padding: 10px;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>🔍 IG Account Checker</h2>
+      <input
+        type="text"
+        id="usernameInput"
+        placeholder="Masukkan Username (tanpa @)"
+      />
+      <br />
+      <button onclick="checkInstagram()">Cek Akun</button>
+
+      <div id="loading" style="display: none; margin-top: 10px">
+        ⏳ Sedang mengambil data...
+      </div>
+
+      <div id="result">
+        <div class="profile-header">
+          <img id="pp" src="" class="profile-img" alt="Profile Pic" />
+          <h3 id="fullname">Nama Lengkap</h3>
+          <p id="username" style="color: gray">@username</p>
+        </div>
+
+        <div class="stats">
+          <div class="stat-box">
+            <div class="stat-val" id="posts">0</div>
+            <div class="stat-label">Posts</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="followers">0</div>
+            <div class="stat-label">Followers</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="following">0</div>
+            <div class="stat-label">Following</div>
+          </div>
+        </div>
+
+        <p><strong>Bio:</strong></p>
+        <div class="bio" id="bio"></div>
+      </div>
+    </div>
+
+    <script>
+      async function checkInstagram() {
+        const username = document.getElementById("usernameInput").value;
+        const resultDiv = document.getElementById("result");
+        const loadingDiv = document.getElementById("loading");
+
+        resultDiv.style.display = "none";
+        loadingDiv.style.display = "block";
+
+        try {
+          // Nembak ke Endpoint Python
+          const response = await fetch("/api/check", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: username }),
+          });
+
+          const data = await response.json();
+          loadingDiv.style.display = "none";
+
+          if (data.status === "success") {
+            document.getElementById("pp").src = data.profile_pic; // Menampilkan Foto
+            document.getElementById("fullname").innerText =
+              data.full_name + (data.is_verified ? " ☑️" : "");
+            document.getElementById("username").innerText = "@" + data.username;
+            document.getElementById("posts").innerText = data.posts;
+            document.getElementById("followers").innerText = data.followers;
+            document.getElementById("following").innerText = data.following;
+            document.getElementById("bio").innerText = data.biography;
+
+            resultDiv.style.display = "block";
+          } else {
+            alert("Gagal: " + data.message);
+          }
+        } catch (error) {
+          loadingDiv.style.display = "none";
+          alert("Terjadi kesalahan koneksi!");
+        }
+      }
+    </script>
+  </body>
+</html>

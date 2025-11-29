@@ -1,0 +1,25 @@
+# --- File System & Sampah ---
+__pycache__/
+*.pyc
+.DS_Store
+
+# --- Virtual Environment (Wajib) ---
+venv/
+env/
+.env
+
+# --- Log & Riwayat (Biar GitHub gak penuh teks) ---
+*.log
+riwayat_bot.txt
+geckodriver.log
+
+# --- Khusus Bot Instagram ---
+# Sembunyikan file session agar akun gak dibajak
+*.json
+session-*
+auth.json
+
+# --- IDE Settings (VS Code dkk) ---
+.vscode/
+.idea/
+
